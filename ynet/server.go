@@ -42,7 +42,7 @@ func (s *Server) Start() {
 			conn, err := listener.AcceptTCP()
 			if err != nil {
 				fmt.Println("Accept failed, err:", err)
-				return
+				continue
 			}
 
 			dealConn := NewConnection(conn, cid, CallbackToClient)

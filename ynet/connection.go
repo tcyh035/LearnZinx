@@ -43,7 +43,7 @@ func (c *Connection) StartReader() {
 		cnt, err := c.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("recv buf err", err)
-			continue
+			return
 		}
 
 		// 调用当前连接所绑定的handleapi
@@ -59,7 +59,7 @@ func (c *Connection) Start() {
 	fmt.Println("Conn Start() ... ConnID =", c.ConnID)
 	go c.StartReader()
 	// 启动从当前连接读数据的业务
-	///TODO 启动从当前写数据的业务, 现在都写一起了
+	// TODO 启动从当前写数据的业务, 现在都写一起了
 }
 
 func (c *Connection) Stop() {
