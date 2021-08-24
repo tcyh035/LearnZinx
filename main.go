@@ -1,6 +1,8 @@
 package main
 
-import "yinx/ynet"
+import (
+	"yinx/ynet"
+)
 
 func main() {
 	s := ynet.NewServer("Hello")

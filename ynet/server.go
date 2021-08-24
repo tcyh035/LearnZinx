@@ -1,6 +1,7 @@
 package ynet
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"yinx/yiface"
@@ -11,6 +12,16 @@ type Server struct {
 	IPVersion string
 	IP        string
 	Port      int
+}
+
+func CallbackToClient(conn *net.TCPConn, data []byte, cnt int) error {
+	fmt.Println("[Conn Handle] CallbackToClient")
+	if _, err := conn.Write(data[:cnt]); err != nil {
+		fmt.Println("write back buf err:", err)
+		return errors.New("CallbackToClient error")
+	}
+
+	return nil
 }
 
 func (s *Server) Start() {
@@ -25,32 +36,19 @@ func (s *Server) Start() {
 			fmt.Println("Listen failed, err:", err)
 		}
 
+		var cid uint32 = 0
+
 		for {
-			conn, err := listener.Accept()
+			conn, err := listener.AcceptTCP()
 			if err != nil {
 				fmt.Println("Accept failed, err:", err)
-				continue
+				return
 			}
 
-			go func() {
-				fmt.Println("Accept! from", conn.RemoteAddr().String())
-				for {
-					buf := make([]byte, 512)
-					n, err := conn.Read(buf)
-					if err != nil {
-						fmt.Println("Read failed, err:", err)
-						continue
-					}
+			dealConn := NewConnection(conn, cid, CallbackToClient)
+			cid++
 
-					fmt.Println("接受到了！", string(buf[:n]))
-
-					_, err = conn.Write(buf[:n])
-					if err != nil {
-						fmt.Println("Write failed, err", err)
-						continue
-					}
-				}
-			}()
+			go dealConn.Start()
 		}
 	}()
 
@@ -61,6 +59,7 @@ func (s *Server) Stop() {
 }
 
 func (s *Server) Serve() {
+	fmt.Println("[Server]", s.Name, "start to serve")
 	s.Start()
 
 	// 其他操作
@@ -73,7 +72,7 @@ func NewServer(name string) yiface.IServer {
 		Name:      name,
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
-		Port:      8888,
+		Port:      8999,
 	}
 
 	return s
