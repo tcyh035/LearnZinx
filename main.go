@@ -24,16 +24,6 @@ func (router *MyRouter) Handle(request yiface.IRequest) {
 	}
 }
 
-func CallbackToClient(conn *net.TCPConn, data []byte, cnt int) error {
-	fmt.Println("[Conn Handle] CallbackToClient")
-	if _, err := conn.Write(data[:cnt]); err != nil {
-		fmt.Println("write back buf err:", err)
-		return errors.New("CallbackToClient error")
-	}
-
-	return nil
-}
-
 func main() {
 	s := ynet.NewServer("Hello")
 	s.AddRouter(&MyRouter{})
