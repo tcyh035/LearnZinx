@@ -1,9 +1,7 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"net"
 	"strings"
 	"yinx/yiface"
 	"yinx/ynet"
