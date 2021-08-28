@@ -13,19 +13,19 @@ type Connection struct {
 
 	isClosed bool
 
-	handleAPI yiface.HandleFunc
+	Router yiface.IRouter
 
 	// 告知当前连接已经退出/停止 channel
 	ExitChan chan bool
 }
 
-func NewConnection(conn *net.TCPConn, connID uint32, callback yiface.HandleFunc) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, router yiface.IRouter) *Connection {
 	c := &Connection{
-		Conn:      conn,
-		ConnID:    connID,
-		handleAPI: callback,
-		isClosed:  false,
-		ExitChan:  make(chan bool, 1),
+		Conn:     conn,
+		ConnID:   connID,
+		Router:   router,
+		isClosed: false,
+		ExitChan: make(chan bool, 1),
 	}
 
 	return c
@@ -40,17 +40,22 @@ func (c *Connection) StartReader() {
 	for {
 		// 读取客户端的数据到buf中，目前最大512字节
 		buf := make([]byte, 512)
-		cnt, err := c.Conn.Read(buf)
+		_, err := c.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("recv buf err", err)
 			return
 		}
 
-		// 调用当前连接所绑定的handleapi
-		err = c.handleAPI(c.Conn, buf, cnt)
-		if err != nil {
-			fmt.Println("ConnID", c.ConnID, "handle error:", err)
+		request := Request{
+			conn: c,
+			data: buf,
 		}
+
+		go func(request yiface.IRequest) {
+			c.Router.PreHandle(request)
+			c.Router.Handle(request)
+			c.Router.PostHandle(request)
+		}(&request)
 
 	}
 }

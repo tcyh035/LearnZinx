@@ -1,7 +1,6 @@
 package ynet
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"yinx/yiface"
@@ -12,16 +11,7 @@ type Server struct {
 	IPVersion string
 	IP        string
 	Port      int
-}
-
-func CallbackToClient(conn *net.TCPConn, data []byte, cnt int) error {
-	fmt.Println("[Conn Handle] CallbackToClient")
-	if _, err := conn.Write(data[:cnt]); err != nil {
-		fmt.Println("write back buf err:", err)
-		return errors.New("CallbackToClient error")
-	}
-
-	return nil
+	Router    yiface.IRouter
 }
 
 func (s *Server) Start() {
@@ -45,7 +35,7 @@ func (s *Server) Start() {
 				continue
 			}
 
-			dealConn := NewConnection(conn, cid, CallbackToClient)
+			dealConn := NewConnection(conn, cid, s.Router)
 			cid++
 
 			go dealConn.Start()
@@ -67,12 +57,18 @@ func (s *Server) Serve() {
 	select {}
 }
 
+func (s *Server) AddRouter(router yiface.IRouter) {
+	s.Router = router
+	fmt.Println("Add router!")
+}
+
 func NewServer(name string) yiface.IServer {
 	s := &Server{
 		Name:      name,
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
 		Port:      8999,
+		Router:    nil,
 	}
 
 	return s
