@@ -3,6 +3,7 @@ package ynet
 import (
 	"fmt"
 	"net"
+	"yinx/utils"
 	"yinx/yiface"
 )
 
@@ -64,10 +65,10 @@ func (s *Server) AddRouter(router yiface.IRouter) {
 
 func NewServer(name string) yiface.IServer {
 	s := &Server{
-		Name:      name,
+		Name:      utils.GlobalObject.Name,
 		IPVersion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      8999,
+		IP:        utils.GlobalObject.Host,
+		Port:      utils.GlobalObject.TcpPort,
 		Router:    nil,
 	}
 
