@@ -41,7 +41,7 @@ func (c *Connection) StartReader() {
 	for {
 		// 读取客户端的数据到buf中，目前最大512字节
 		buf := make([]byte, utils.GlobalObject.MaxPackageSize)
-		_, err := c.Conn.Read(buf)
+		cnt, err := c.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("recv buf err", err)
 			return
@@ -49,7 +49,7 @@ func (c *Connection) StartReader() {
 
 		request := Request{
 			conn: c,
-			data: buf,
+			data: buf[:cnt],
 		}
 
 		go func(request yiface.IRequest) {

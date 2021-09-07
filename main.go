@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"yinx/yiface"
 	"yinx/ynet"
 )
@@ -12,11 +11,11 @@ type MyRouter struct {
 }
 
 func (router *MyRouter) Handle(request yiface.IRequest) {
-
 	fmt.Println("[My Router] Handle")
 	conn := request.GetConnection()
-	s := strings.ToUpper(string(request.GetData()))
-	_, err := conn.GetTCPConnection().Write([]byte(s))
+	received := string(request.GetData())
+	fmt.Println("len is ", len(received))
+	_, err := conn.GetTCPConnection().Write([]byte(received))
 	if err != nil {
 		fmt.Println("write back buf err:", err)
 	}
