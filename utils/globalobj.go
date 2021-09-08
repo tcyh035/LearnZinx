@@ -14,7 +14,7 @@ type GlobalObj struct {
 
 	Version        string
 	MaxConn        int
-	MaxPackageSize int
+	MaxPackageSize uint32
 }
 
 var GlobalObject *GlobalObj
