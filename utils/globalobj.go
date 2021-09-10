@@ -22,7 +22,7 @@ var GlobalObject *GlobalObj
 func (g *GlobalObj) Reload() {
 	data, err := ioutil.ReadFile("conf/yinx.json")
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	err = json.Unmarshal(data, &GlobalObject)
