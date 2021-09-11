@@ -2,8 +2,8 @@ package ynet
 
 import (
 	"fmt"
+	"io"
 	"net"
-	"yinx/utils"
 	"yinx/yiface"
 )
 
@@ -39,17 +39,38 @@ func (c *Connection) StartReader() {
 	defer c.Stop()
 
 	for {
-		// 读取客户端的数据到buf中，目前最大512字节
-		buf := make([]byte, utils.GlobalObject.MaxPackageSize)
-		cnt, err := c.Conn.Read(buf)
+		dp := NewDataPack()
+		// 第一次读，把数据头读出来
+		dataHead := make([]byte, dp.GetHeadLen())
+		// ReadFull如果没读满的话会抛异常，故不需要使用返回的长度
+		_, err := io.ReadFull(c.Conn, dataHead)
 		if err != nil {
-			fmt.Println("recv buf err", err)
-			return
+			fmt.Println("read data head failed, err", err)
+			break
 		}
 
+		// 此时解析数据头，生成message，message里只有长度，没有数据本体
+		msg, err := dp.Unpack(dataHead)
+		if err != nil {
+			fmt.Println("unpack message error", err)
+		}
+
+		// 第二次读，把数据体读出来
+		var dataBody []byte
+		if msg.GetDataLen() > 0 {
+			dataBody = make([]byte, msg.GetDataLen())
+			_, err = io.ReadFull(c.Conn, dataBody)
+			if err != nil {
+				fmt.Println("read data body failed, err", err)
+				break
+			}
+		}
+
+		msg.SetMsgData(dataBody)
+
 		request := Request{
-			conn: c,
-			data: buf[:cnt],
+			conn:    c,
+			message: msg,
 		}
 
 		go func(request yiface.IRequest) {

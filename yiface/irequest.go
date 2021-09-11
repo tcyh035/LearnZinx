@@ -3,5 +3,7 @@ package yiface
 type IRequest interface {
 	GetConnection() IConnection
 
-	GetData() []byte
+	GetMessage() IMessage
+
+	GetMsgID() uint32
 }
