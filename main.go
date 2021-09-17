@@ -13,7 +13,7 @@ type MyRouter struct {
 func (router *MyRouter) Handle(request yiface.IRequest) {
 	fmt.Println("[My Router] Handle")
 	conn := request.GetConnection()
-	received := string(request.GetData())
+	received := string(request.GetMessage().GetData())
 	fmt.Println("len is ", len(received))
 	_, err := conn.GetTCPConnection().Write([]byte(received))
 	if err != nil {
