@@ -1,9 +1,10 @@
 package ynet
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"net"
-	"yinx/utils"
 	"yinx/yiface"
 )
 
@@ -40,16 +41,40 @@ func (c *Connection) StartReader() {
 
 	for {
 		// 读取客户端的数据到buf中，目前最大512字节
-		buf := make([]byte, utils.GlobalObject.MaxPackageSize)
-		cnt, err := c.Conn.Read(buf)
+		// buf := make([]byte, utils.GlobalObject.MaxPackageSize)
+		// cnt, err := c.Conn.Read(buf)
+		// if err != nil {
+		// 	fmt.Println("recv buf err", err)
+		// 	return
+		// }
+
+		dp := NewDataPack()
+		headData := make([]byte, dp.GetHeadLen())
+		_, err := io.ReadFull(c.GetTCPConnection(), headData)
 		if err != nil {
-			fmt.Println("recv buf err", err)
-			return
+			fmt.Println("read head data error:", err)
 		}
+
+		currentMsg, err := dp.Unpack(headData)
+		if err != nil {
+			fmt.Println("unpack error:", err)
+			break
+		}
+
+		var data []byte
+		if currentMsg.GetDataLen() > 0 {
+			data = make([]byte, currentMsg.GetDataLen())
+			_, err := io.ReadFull(c.GetTCPConnection(), data)
+			if err != nil {
+				fmt.Println("read data error:", err)
+			}
+		}
+
+		currentMsg.SetMsgData(data)
 
 		request := Request{
 			conn: c,
-			data: buf[:cnt],
+			msg:  currentMsg,
 		}
 
 		go func(request yiface.IRequest) {
@@ -94,4 +119,14 @@ func (c *Connection) GetConnID() uint32 {
 
 func (c *Connection) RemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
+}
+
+func (c *Connection) SendMsg(yiface.IMessage) error {
+	if c.isClosed {
+		return errors.New("connection closed")
+	}
+
+	// TODO
+
+	return nil
 }

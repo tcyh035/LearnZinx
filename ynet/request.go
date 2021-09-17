@@ -7,7 +7,7 @@ type Request struct {
 	conn yiface.IConnection
 
 	// 数据
-	data []byte
+	msg yiface.IMessage
 }
 
 func (r *Request) GetConnection() yiface.IConnection {
@@ -15,5 +15,9 @@ func (r *Request) GetConnection() yiface.IConnection {
 }
 
 func (r *Request) GetData() []byte {
-	return r.data
+	return r.msg.GetData()
+}
+
+func (r *Request) GetMsgId() uint32 {
+	return r.msg.GetMsgId()
 }
